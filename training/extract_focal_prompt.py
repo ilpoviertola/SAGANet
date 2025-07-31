@@ -49,22 +49,22 @@ log.setLevel(logging.INFO)
 ## urmp
 # data_cfg = {
 #     "test": {
-#         "root": "./urmp",
-#         "tsv": "./urmp/urmp.tsv",
+#         "root": "./data/urmp",
+#         "tsv": "./data/urmp/metadata.tsv",
 #         "normalize_audio": False,
 #     }
 # }
 ## segmened music solos (sms)
 data_cfg = {
     "train": {
-        "root": "./sms",
-        "tsv": "./sms/metadata.tsv",
+        "root": "./data/sms",
+        "tsv": "./data/sms/metadata.csv",
         "split": "train",
         "normalize_audio": False,
     },
     "val": {
-        "root": "./sms",
-        "tsv": "./sms/metadata.tsv",
+        "root": "./data/sms",
+        "tsv": "./data/sms/metadata.csv",
         "split": "val",
         "normalize_audio": False,
     },

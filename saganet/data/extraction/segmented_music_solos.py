@@ -99,8 +99,9 @@ class SegmentedMusicSolos(Dataset):
 
     def _read_metadata(self) -> list[list[str]]:
         meta = []
+        delimiter = "\t" if self.tsv_path.suffix == ".tsv" else ","
         with open(self.tsv_path, "r") as f:
-            reader = csv.reader(f, delimiter="\t")
+            reader = csv.reader(f, delimiter=delimiter)
             next(reader)
             for row in reader:
                 if self.split and row[6] != self.split:

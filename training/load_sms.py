@@ -140,9 +140,7 @@ def handle_sms(
     metadata = metadata.reset_index()
 
     output_dir = output_dir / "sms"
-    for i, row in metadata.iterrows():
-        if i == 5:
-            break
+    for _, row in metadata.iterrows():
         if row["subset"] == "solos":
             inp = solos_path
         elif row["subset"] == "avs-semantic":
@@ -188,9 +186,7 @@ def handle_urmp(
     metadata = metadata.reset_index()
 
     output_dir = output_dir / "urmp"
-    for i, row in metadata.iterrows():
-        if i == 5:
-            break
+    for _, row in metadata.iterrows():
         processed = False
         p_dir, v_id = row["video_id"].split("/")
         matches = list(urmp_path.rglob(f"{v_id}.mp4"))

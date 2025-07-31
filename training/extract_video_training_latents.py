@@ -50,25 +50,20 @@ log.setLevel(logging.INFO)
 # uncomment the train/test/val sets to extract latents for them
 # data_cfg = {
 #     "train": {
-#         "root": "./datasets/sms/clipped",
-#         "tsv": "./datasets/sms/train.tsv",
-#         "normalize_audio": False,
-#     },
-#     "test": {
-#         "root": "./datasets/sms/clipped",
-#         "tsv": "./datasets/sms/test.tsv",
+#         "root": "./data/sms/data",
+#         "tsv": "./data/sms/metadata.csv",
 #         "normalize_audio": False,
 #     },
 #     "val": {
-#         "root": "./datasets/sms/clipped",
-#         "tsv": "./datasets/sms/val.tsv",
+#         "root": "./data/sms/data",
+#         "tsv": "./data/sms/metadata.csv",
 #         "normalize_audio": False,
 #     },
 # }
 data_cfg = {
     "test": {
-        "root": "./datasets/urmp",
-        "tsv": "./datasets/urmp/urmp.tsv",
+        "root": "./data/urmp/data",
+        "tsv": "./data/urmp/metadata.tsv",
         "normalize_audio": False,
     },
 }

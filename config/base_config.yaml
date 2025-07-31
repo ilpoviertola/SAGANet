@@ -11,7 +11,7 @@ hydra:
 
 enable_email: False
 
-model: small_16k
+model: small_44k_sa
 
 exp_id: default
 debug: False
