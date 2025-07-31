@@ -11,7 +11,7 @@ Thanks for the team of [MMAudio](https://github.com/hkchengrex/MMAudio). Our wor
 ## Cite
 
 ```bibtex
-@inproceedings{poviertola2025saganet,
+@inproceedings{ilpoviertola2025saganet,
   title={SAGANet: Video Object Segmentation-Aware Audio Generation},
   author={Viertola, Ilpo and Iashin, Vladimir and Rahtu, Esa},
   booktitle={DAGM German Conference on Pattern Recognition (GCPR)},
