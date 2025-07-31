@@ -1,15 +1,15 @@
 SMS:
-  root: ./sms
-  tsv: ./sms/memmaps/sms-train.tsv
+  root: ./data/sms
+  tsv: ./data/sms/memmaps/sms-train.tsv
   split: train
-  memmap_dir: ./sms/memmaps/sms-train
+  memmap_dir: ./data/sms/memmaps/sms-train
 
 
 SMS_val:
-  root: ./sms
-  tsv: ./sms/memmaps/sms-val.tsv
+  root: ./data/sms
+  tsv: ./data/sms/memmaps/sms-val.tsv
   split: val
   output_subdir: val
-  gt_cache: ./sms/val_cache
+  gt_cache: ./data/sms/val_cache
   tag: val
-  memmap_dir: ./sms/memmaps/sms-val
+  memmap_dir: ./data/sms/memmaps/sms-val
