@@ -1,0 +1,35 @@
+defaults:
+  - base_config
+  - override hydra/job_logging: custom-simplest
+  - _self_
+
+hydra:
+  run:
+    dir: ./output/${exp_id}
+  output_subdir: eval-${now:%Y-%m-%d_%H-%M-%S}-hydra
+
+hybrid_music_train: False
+sms_train: True
+model: small_44k_sa
+dataset: urmp
+
+exp_id: ${model}
+duration_s: 5.0
+
+# for inference, this is the per-GPU batch size
+batch_size: 4
+output_name: null
+
+data_dim:
+  latent_seq_len: 216
+  clip_seq_len: 40
+  sync_seq_len: 112
+  text_seq_len: 77
+  clip_dim: 1024
+  sync_dim: 768
+  text_dim: 1024
+
+# increases ControlNet’s ability to directly recognize semantics in the cond
+null_text_condition_probability: 0.0
+
+use_lora: False

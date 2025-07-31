@@ -1,0 +1,11 @@
+RawMusic:
+  root: ./raw_music/clipped
+  tsv: ./raw_music/test.tsv
+  split: test
+  output_subdir: null
+  gt_cache: ./raw_music/test_eval_cache
+  tag: test
+
+URMP:
+  root: ./urmp-processed
+  tsv: ./urmp-processed/urmp.tsv

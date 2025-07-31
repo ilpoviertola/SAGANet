@@ -1,0 +1,15 @@
+SMS:
+  root: ${oc.env:LOCAL_SCRATCH}/sms/data
+  tsv: ${oc.env:LOCAL_SCRATCH}/sms/memmaps/sms-train.tsv
+  split: train
+  memmap_dir: ${oc.env:LOCAL_SCRATCH}/sms/memmaps/sms-train
+
+
+SMS_val:
+  root: ${oc.env:LOCAL_SCRATCH}/sms/data
+  tsv: ${oc.env:LOCAL_SCRATCH}/sms/memmaps/sms-val.tsv
+  split: val
+  output_subdir: val
+  gt_cache: ${oc.env:LOCAL_SCRATCH}/sms/val_cache
+  tag: val
+  memmap_dir: ${oc.env:LOCAL_SCRATCH}/sms/memmaps/sms-val

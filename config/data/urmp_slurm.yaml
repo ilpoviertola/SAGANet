@@ -1,0 +1,8 @@
+URMP:
+  root: ${oc.env:LOCAL_SCRATCH}/urmp
+  tsv: ${oc.env:LOCAL_SCRATCH}/urmp/memmaps/urmp-test.tsv
+  split: test
+  memmap_dir: ${oc.env:LOCAL_SCRATCH}/urmp/memmaps/urmp-test
+  output_subdir: null
+  gt_cache: ${oc.env:LOCAL_SCRATCH}/urmp/eval_cache
+  tag: test

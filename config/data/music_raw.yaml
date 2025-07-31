@@ -1,0 +1,20 @@
+RawMusic:
+  root: ./raw_music/clipped
+  tsv: ./raw_music/train.tsv
+  split: train
+
+RawMusic_val:
+  root: ./raw_music/clipped
+  tsv: ./raw_music/val.tsv
+  split: val
+  output_subdir: val
+  gt_cache: ./raw_music/val_eval_cache
+  tag: val
+
+RawMusic_test:
+  root: ./raw_music/clipped
+  tsv: ./raw_music/test.tsv
+  split: test
+  output_subdir: null
+  gt_cache: ./raw_music/test_eval_cache
+  tag: test
