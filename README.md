@@ -2,7 +2,7 @@
 
 [Ilpo Viertola](https://scholar.google.com/citations?user=gGWNg4EAAAAJ&hl=en), [Vladimir Iashin](https://scholar.google.com/citations?user=rh8_sSkAAAAJ&hl=en), and [Esa Rahtu](https://scholar.google.com/citations?user=SmGZwHYAAAAJ&hl=en)
 
-[[Project Page](https://saganet.notion.site/)][[ArXiv](https://arxiv.org/abs/2509.26604v1)]
+[[Project Page](https://saganet.notion.site/)][[ArXiv](https://arxiv.org/abs/2509.26604)]
 
 DAGM German Conference on Pattern Recognition (GCPR) 2025.
 
