@@ -4,7 +4,7 @@
 
 [[Project Page](https://saganet.notion.site/)][[ArXiv](https://arxiv.org/abs/2509.26604)]
 
-DAGM German Conference on Pattern Recognition (GCPR) 2025.
+DAGM German Conference on Pattern Recognition (GCPR) 2025 (Oral).
 
 Thanks for the team of [MMAudio](https://github.com/hkchengrex/MMAudio). Our work is based on their codebase, licensed under the MIT License.
 
