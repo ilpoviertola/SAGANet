@@ -1,4 +1,3 @@
-torch>=2.5.1
 huggingface_hub>=0.26
 cython
 gitpython>=3.1
