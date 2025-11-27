@@ -49,7 +49,7 @@ if [ -z "$yaml_file" ]; then
 fi
 
 # Path to the environment. Same as INSTALL_DIR in create_environment.sh
-ENV_DIR=./lumi_env/image/
+ENV_DIR=./lumi_env/image
 
 # Name of the image to to use
 IMAGE_NAME=saganet.sif
@@ -79,7 +79,7 @@ echo "Using ${nodes:-1} nodes"
 
 # The number of GPUs and nodes are auto-detected from the SLURM environment variables.
 cmd="srun singularity exec \
-    -B $ENV_DIR/myenv.sqsh:/user-software:image-src=/ $ENV_DIR/$IMAGE_NAME \
+    -B $ENV_DIR/myenv.sqsh:/user-software:image-src=$ENV_DIR/$IMAGE_NAME \
     torchrun --standalone --nproc_per_node=$devices train.py \
     --config-name $yaml_file \
 	debug=True \
