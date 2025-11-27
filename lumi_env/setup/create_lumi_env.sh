@@ -1,13 +1,13 @@
 #!/bin/bash -l
-#SBATCH --job-name=lumi_env_build     # Job name
-#SBATCH --output=sbatch_logs/log_build.out      # Name of stdout output file
-#SBATCH --error=sbatch_logs/log_build.err       # Name of stderr error file
-#SBATCH --partition=small               # partition name
-#SBATCH --nodes=1                       # Total number of nodes 
-#SBATCH --ntasks-per-node=1             # MPI ranks per node
-#SBATCH --cpus-per-task=64
-#SBATCH --mem=256G                      # Total memory for job
-#SBATCH --time=0-00:20:00               # Run time (d-hh:mm:ss)
+#SBATCH --job-name=lumi_env_build               # Job name
+#SBATCH --output=sbatch_logs/log_build.log      # Name of stdout output file
+#SBATCH --error=sbatch_logs/log_build.log       # Name of stderr error file
+#SBATCH --partition=small                       # partition name
+#SBATCH --nodes=1                               # Total number of nodes
+#SBATCH --ntasks-per-node=1                     # MPI ranks per node
+#SBATCH --cpus-per-task=64                      # CPU cores per task
+#SBATCH --mem=256G                              # Total memory for job
+#SBATCH --time=0-00:20:00                       # Run time (d-hh:mm:ss)
 
 # Reference:
 # https://github.com/Lumi-supercomputer/Getting_Started_with_AI_workshop/blob/main/07_Extending_containers_with_virtual_environments_for_faster_testing/examples/extending_containers_with_venv.md
@@ -16,13 +16,21 @@
 IMAGE_NAME=saganet.sif
 
 # Path to the package being developed
-PKG_DIR=""
+PKG_DIR="$(pwd)"
+
+# assert that the PKG_DIR name is SAGANet
+if [ "$(basename $PKG_DIR)" != "SAGANet" ]; then
+    echo "Error: PKG_DIR must point to the SAGANet package directory"
+    echo "Current PKG_DIR: $PKG_DIR"
+    echo "Please run this script from the SAGANet package root directory."
+    exit 1
+fi
 
 # Where to store the image
-INSTALL_DIR=""
+INSTALL_DIR="$PKG_DIR/lumi_env/image/"
 
 # Path to your conda environment file
-ENV_FILE_PATH=$PKG_DIR/lumi_environment.yaml
+ENV_FILE_PATH="$PKG_DIR/lumi_env/setup/lumi_environment.yaml"
 
 # Path to the environment base image. Choose a ROCm version that matches your needs.
 # On the base images, RCCL is properly configured to use the high-speed Slingshot-11 interconnect
