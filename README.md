@@ -19,7 +19,7 @@ Thanks for the team of [MMAudio](https://github.com/hkchengrex/MMAudio). Our wor
 }
 ```
 
-## Installation
+## Regular Installation
 
 Tested with Ubuntu 22.04.5.
 
@@ -41,10 +41,28 @@ cd SAGANet
 pip install -r requirements.txt
 ```
 
-All the necessat weights are downloaded automatically when you run the demo.
+## LUMI Supercomputer Installation
+
+We provide instructions to set up the environment on [LUMI](https://lumi-supercomputer.eu/), a leading supercomputer in Europe.
+
+### 1. Clone the repository
+
+```bash
+git clone git@github.com:ilpoviertola/SAGANet.git
+cd SAGANet
+```
+
+### 2. Create the environment image
+
+Run the command in the `SAGANet` root directory. Submit the `lumi_env/setup/create_lumi_env.sh` script to create the environment image on LUMI:
+
+```bash
+sbatch -A <your_LUMI_project_id> lumi_env/setup/create_lumi_env.sh
+```
 
 ## Demo
 
+All the necessary weights are downloaded automatically when you run the demo.
 Running the demo takes around 4.5 GB of GPU memory. Below is an example command. Explore the `demo.py` file for more options.
 
 ```bash
@@ -120,3 +138,4 @@ More configuration options can be found in `config/base_config.yaml` and `config
 ## TODO
 
 - [ ] Add on-the-fly segmentation mask generation from user prompts.
+- [ ] Add training instructions for LUMI.
