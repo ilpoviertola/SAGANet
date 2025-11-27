@@ -65,7 +65,7 @@ module load singularity-AI-bindings
 singularity exec $INSTALL_DIR/$IMAGE_NAME bash -c "
   python -m venv $INSTALL_DIR/myenv --system-site-packages &&
   source $INSTALL_DIR/myenv/bin/activate &&
-  pip install git+https://github.com/hkchengrex/av-benchmark.git &&
+  pip install -e git+https://github.com/hkchengrex/av-benchmark.git &&
   pip install -e $PKG_DIR &&
   deactivate
 "
