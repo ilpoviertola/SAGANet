@@ -79,9 +79,9 @@ echo "Using ${nodes:-1} nodes"
 
 # The number of GPUs and nodes are auto-detected from the SLURM environment variables.
 cmd="srun singularity exec \
-    -B $ENV_DIR/myenv.sqsh:/user-software:image-src=$ENV_DIR/$IMAGE_NAME \
-    torchrun --standalone --nproc_per_node=$devices train.py \
-    --config-name $yaml_file \
+	-B $ENV_DIR/myenv.sqsh:/user-software:image-src=/ $ENV_DIR/$IMAGE_NAME \
+	torchrun --standalone --nproc_per_node=$devices train.py \
+	--config-name $yaml_file \
 	debug=True \
 	batch_size=2 \
 	num_iterations=2 \
