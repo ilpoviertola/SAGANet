@@ -48,8 +48,19 @@ if [ -z "$yaml_file" ]; then
 	exit 1
 fi
 
+# Path to the package being developed
+PKG_DIR="$(pwd)"
+
+# assert that the PKG_DIR name is SAGANet
+if [ "$(basename $PKG_DIR)" != "SAGANet" ]; then
+    echo "Error: PKG_DIR must point to the SAGANet package directory"
+    echo "Current PKG_DIR: $PKG_DIR"
+    echo "Please run this script from the SAGANet package root directory."
+    exit 1
+fi
+
 # Path to the environment. Same as INSTALL_DIR in create_environment.sh
-ENV_DIR=./lumi_env/image
+ENV_DIR="$PKG_DIR/lumi_env/image"
 
 # Name of the image to to use
 IMAGE_NAME=saganet.sif
