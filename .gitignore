@@ -18,6 +18,7 @@ checkpoints/
 cache/
 .trash/
 data/
+sbatch_logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
