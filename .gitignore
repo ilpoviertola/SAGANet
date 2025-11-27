@@ -18,6 +18,8 @@ cache/
 .trash/
 data/
 sbatch_logs/
+egs/lumi/tmp/
+lumi_env/image/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
