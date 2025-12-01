@@ -13,15 +13,30 @@
 set -e
 
 # Parse arguments
-yaml_file=""
+data_cfg=""
+trainer_cfg=""
+model_cfg=""
 ckpt_path=""
 compile_disabled=""
 devices=2
+other_args=()
 while [[ $# -gt 0 ]]; do
 	key="$1"
 	case $key in
-		-c)
-			yaml_file="$2"
+		--data)
+			data_cfg="$2"
+			shift; shift
+			;;
+		--trainer)
+			trainer_cfg="$2"
+			shift; shift
+			;;
+		--model)
+			model_cfg="$2"
+			shift; shift
+			;;
+		--ckpt_path)
+			ckpt_path="$2"
 			shift; shift
 			;;
 		--devices)
@@ -36,10 +51,10 @@ while [[ $# -gt 0 ]]; do
 			compile_disabled="--compile_disabled"
 			shift
 			;;
-		*)
-			echo "Unknown argument: $key"
-			exit 1
-			;;
+        *)
+            other_args+=("$1")
+            shift
+            ;;
 	esac
 done
 
@@ -91,21 +106,19 @@ echo "Using ${nodes:-1} nodes"
 # The number of GPUs and nodes are auto-detected from the SLURM environment variables.
 cmd="srun singularity exec \
 	-B $ENV_DIR/myenv.sqsh:/user-software:image-src=/ $ENV_DIR/$IMAGE_NAME \
-	torchrun --standalone --nproc_per_node=$devices train.py \
-	--config-name $yaml_file \
-	debug=True \
-	batch_size=2 \
-	num_iterations=2 \
-	eval_interval=20 \
-	val_interval=20 \
-	save_checkpoint_interval=1 \
-	save_weights_interval=1 \
-	save_eval_interval=20 \
-	log_extra_interval=20 \
+	python main.py fit \
+	--data $data_cfg \
+	--model $model_cfg \
+	--trainer $trainer_cfg \
+	--trainer.fast_dev_run=True \
+	--trainer.num_nodes ${nodes:-1} \
+	--trainer.devices $devices \
+	$compile_disabled \
+	${other_args[@]}
 "
 
-if [ -n "$compile_disabled" ]; then
-	cmd+=" compile=False "
+if [ -n "$ckpt_path" ]; then
+	cmd+=" --model.ckpt_path $ckpt_path"
 fi
 
 # Read and export secret WANDB API key as environment variable
