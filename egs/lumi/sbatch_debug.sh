@@ -110,7 +110,7 @@ cmd="srun singularity exec \
 	--data $data_cfg \
 	--model $model_cfg \
 	--trainer $trainer_cfg \
-	--trainer.fast_dev_run=True \
+	--trainer.fast_dev_run=20 \
 	--trainer.num_nodes ${nodes:-1} \
 	--trainer.devices $devices \
 	$compile_disabled \
