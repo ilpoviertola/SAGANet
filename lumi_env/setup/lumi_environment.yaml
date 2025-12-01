@@ -35,3 +35,4 @@ dependencies:
       - av>=14.0.1
       - timm>=1.0.12
       - python-dotenv
+      - loralib
