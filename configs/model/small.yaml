@@ -1,0 +1,67 @@
+# Network params
+class_path: saganet.lightning_module.LightningModule
+init_args:
+  network:
+    class_path: saganet.model.networks.MMAudio
+    init_args:
+      latent_dim: 40
+      clip_dim: 1024
+      sync_dim: 768
+      text_dim: 1024
+      hidden_dim: 448  # 64 * num_heads
+      depth: 12
+      fused_depth: 8
+      num_heads: 7
+      latent_seq_len: 216
+      clip_seq_len: 40
+      sync_seq_len: 112
+      latent_mean: null  # loaded from data stats
+      latent_std: null  # loaded from data stats
+      use_lora: true
+  train_network: false
+  train_synchformer: true
+  use_lora: true
+# Flow matching
+  flow_matching:
+    class_path: saganet.model.flow_matching.FlowMatching
+    init_args:
+      min_sigma: 0.0
+      inference_mode: euler
+      num_steps: 25
+# Feature extractors
+  feature_utils:
+    class_path: saganet.model.utils.features_utils.FeaturesUtils
+    init_args:
+      tod_vae_ckpt: ./ext_weights/v1-44.pth
+      synchformer_ckpt: ./ext_weights/synchformer_state_dict.pth
+      enable_synchformer: true
+      enable_clip: false
+      enable_vae_encoder: false
+      mode: 44k_sa
+# Sampling
+  log_normal_sampling_mean: 0.0
+  log_normal_sampling_scale: 1.0
+  null_condition_prob: 0.1
+  null_text_condition_prob: 0.5
+  cfg_strength: 4.5
+# Video composer
+  video_joiner:
+    class_path: saganet.utils.video_joiner.VideoJoiner
+    init_args:
+      src_root: null  # will be overwritten from data config
+      output_root: null  # will be overwritten after logger setup
+      sample_rate: 44000
+      duration_seconds: 5.0
+# Training params
+  weight_decay: 1e-6
+  learning_rate: 1e-5
+  betas: [0.9, 0.95]
+  eps: 1e-6
+  fused: false
+  linear_warmup_steps: 2500
+  lr_schedule: step
+  lr_schedule_steps: [60000, 65000]
+  lr_schedule_gamma: 0.1
+  evaluation_interval_epochs: 15_000
+# Eval params
+  gt_cache: ./data/sms/val_cache

@@ -3,15 +3,21 @@ import logging
 log = logging.getLogger()
 
 
-def get_parameter_groups(model, cfg, print_log=False):
+def get_parameter_groups(
+    model, cfg=None, weight_decay=None, base_lr=None, print_log=False
+):
     """
     Assign different weight decays and learning rates to different parameters.
     Returns a parameter group which can be passed to the optimizer.
     """
-    weight_decay = cfg.weight_decay
-    # embed_weight_decay = cfg.embed_weight_decay
-    # backbone_lr_ratio = cfg.backbone_lr_ratio
-    base_lr = cfg.learning_rate
+    if cfg is None:
+        assert weight_decay is not None, f"{weight_decay=}"
+        assert base_lr is not None, f"{base_lr=}"
+    else:
+        weight_decay = cfg.weight_decay
+        # embed_weight_decay = cfg.embed_weight_decay
+        # backbone_lr_ratio = cfg.backbone_lr_ratio
+        base_lr = cfg.learning_rate
 
     backbone_params = []
     embed_params = []

@@ -1,0 +1,11 @@
+class_path: saganet.data.sms_module.SMSDataModule
+init_args:
+  sms_root: ./data/sms
+  urmp_root: ./data/urmp
+  data_dim:
+    text_seq_len: 77
+    clip_dim: 1024
+    sync_dim: 768
+    text_dim: 1024
+  batch_size: 2
+  num_workers: 10

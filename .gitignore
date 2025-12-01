@@ -17,8 +17,10 @@ training/example_output/
 checkpoints/
 cache/
 .trash/
-data/
 sbatch_logs/
+data/sms
+data/urmp
+wandb/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

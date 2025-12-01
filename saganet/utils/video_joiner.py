@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional
 
 import torch
 from torio.io import StreamingMediaDecoder, StreamingMediaEncoder
@@ -10,18 +10,22 @@ class VideoJoiner:
     def __init__(
         self,
         src_root: Union[str, Path],
-        output_root: Union[str, Path],
         sample_rate: int,
         duration_seconds: float,
+        output_root: Optional[Union[str, Path]] = None,
     ):
         self.src_root = Path(src_root)
-        self.output_root = Path(output_root)
+        self.output_root = Path(output_root) if output_root is not None else None
         self.sample_rate = sample_rate
         self.duration_seconds = duration_seconds
 
-        self.output_root.mkdir(parents=True, exist_ok=True)
+        if self.output_root is not None:
+            self.output_root.mkdir(parents=True, exist_ok=True)
 
     def join(self, video_id: str, output_name: str, audio: torch.Tensor):
+        assert self.output_root is not None, "Output root is not set"
+        self.output_root.mkdir(parents=True, exist_ok=True)
+
         video_path = self.src_root / f"{video_id}.mp4"
         output_path = self.output_root / f"{output_name}.mp4"
         output_path.parent.mkdir(parents=True, exist_ok=True)

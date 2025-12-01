@@ -1,8 +1,6 @@
 import csv
-import logging
 import typing as tp
 from pathlib import Path
-from math import ceil
 
 import torch
 from torchvision.transforms import v2
@@ -10,10 +8,9 @@ from torch.utils.data.dataset import Dataset
 from torio.io import StreamingMediaDecoder
 from tensordict import TensorDict
 import numpy as np
+from lightning_fabric.utilities import rank_zero_info, rank_zero_warn
 
 from saganet.utils.dist_utils import local_rank
-
-log = logging.getLogger()
 
 _SYNC_SIZE = 224
 _SYNC_FPS = 25.0
@@ -39,21 +36,21 @@ class SegmentedMusicSolos(Dataset):
         self.split = split
         self.metadata = self._read_metadata()
 
-        log.info(f"Loading precomputed mmap from {premade_mmap_dir}")
+        rank_zero_info(f"Loading precomputed mmap from {premade_mmap_dir}")
         premade_mmap_dir = Path(premade_mmap_dir)
         td = TensorDict.load_memmap(premade_mmap_dir)
-        log.info(f"Loaded precomputed mmap from {premade_mmap_dir}")
+        rank_zero_info(f"Loaded precomputed mmap from {premade_mmap_dir}")
         self.mean = td["mean"]
         self.std = td["std"]
         self.clip_features = td["clip_features"]
         self.text_features = td["text_features"]
 
         if local_rank == 0:
-            log.info(f"Loaded {len(self)} samples.")
-            log.info(f"Loaded mean: {self.mean.shape}.")
-            log.info(f"Loaded std: {self.std.shape}.")
-            log.info(f"Loaded clip_features: {self.clip_features.shape}.")
-            log.info(f"Loaded text_features: {self.text_features.shape}.")
+            rank_zero_info(f"Loaded {len(self)} samples.")
+            rank_zero_info(f"Loaded mean: {self.mean.shape}.")
+            rank_zero_info(f"Loaded std: {self.std.shape}.")
+            rank_zero_info(f"Loaded clip_features: {self.clip_features.shape}.")
+            rank_zero_info(f"Loaded text_features: {self.text_features.shape}.")
 
         assert (
             self.mean.shape[1] == self.data_dim["latent_seq_len"]
@@ -243,7 +240,7 @@ class SegmentedMusicSolos(Dataset):
             try:
                 data_chunk, sample_loaded = self.sample(idx)
             except Exception as e:
-                log.error(f"Error loading sample {self._get_file_id(idx)}: {e}")
+                rank_zero_warn(f"Error loading sample {self._get_file_id(idx)}: {e}")
                 sample_loaded = False
                 idx = np.random.randint(0, len(self))
                 load_attempts += 1
