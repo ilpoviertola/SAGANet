@@ -6,6 +6,7 @@ channels:
 dependencies:
   - python=3.9
   - pip
+  - ffmpeg<7
   - pip:
       - --extra-index-url https://download.pytorch.org/whl/rocm6.2.4
       - torch==2.6.0+rocm6.2.4
