@@ -1,8 +1,2 @@
 max_epochs: 46
 check_val_every_n_epoch: 1
-logger:
-  class_path: lightning.pytorch.loggers.wandb.WandbLogger
-  init_args:
-    resume: allow
-    project: saganet
-    name: base
