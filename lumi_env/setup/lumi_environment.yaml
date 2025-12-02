@@ -6,7 +6,8 @@ channels:
 dependencies:
   - python=3.9
   - pip
-  - anaconda::ffmpeg
+  - anaconda::ffmpeg==6.1.1
+  - conda-forge::av>=14.0.1
   - pip:
       - --extra-index-url https://download.pytorch.org/whl/rocm6.2.4
       - torch==2.6.0+rocm6.2.4
@@ -33,7 +34,6 @@ dependencies:
       - tensordict>=0.6.1
       - colorlog
       - open_clip_torch>=2.29.0
-      - av>=14.0.1
       - timm>=1.0.12
       - python-dotenv
       - loralib
