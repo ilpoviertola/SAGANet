@@ -215,11 +215,6 @@ def cli_main():
             "devices": 1,
             "gradient_clip_val": 1.0,
             "gradient_clip_algorithm": "norm",
-            # TODO: Fix this hack (on LUMI configurating logger through YAML fails)
-            "logger": {
-                "class_path": "lightning.pytorch.loggers.wandb.WandbLogger",
-                "init_args": {"resume": "allow", "project": "saganet", "name": "base"},
-            },
         },
     )
 
