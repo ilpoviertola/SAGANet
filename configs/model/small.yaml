@@ -43,7 +43,7 @@ init_args:
   log_normal_sampling_scale: 1.0
   null_condition_prob: 0.1
   null_text_condition_prob: 0.5
-  cfg_strength: 4.5
+  cfg_strength: 7.0
 # Video composer
   video_joiner:
     class_path: saganet.utils.video_joiner.VideoJoiner
