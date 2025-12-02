@@ -244,6 +244,10 @@ class SegmentedMusicSolos(Dataset):
                 sample_loaded = False
                 idx = np.random.randint(0, len(self))
                 load_attempts += 1
+        if not sample_loaded:
+            raise RuntimeError(
+                f"Failed to load sample {self._get_file_id(idx)} after {MAX_LOAD_ATTEMPTS} attempts."
+            )
 
         data_chunk.update(
             {
