@@ -184,7 +184,9 @@ class LightningCLI(cli.LightningCLI):
             self.model.video_joiner.output_root = (
                 Path(self.trainer.logger.experiment.dir) / "videos"
             )
-        self.model.video_joiner.duration_seconds = self.model.seq_cfg.duration
+            self.model.video_joiner.duration_seconds = self.model.seq_cfg.duration
+        else:
+            self.model.video_joiner = None
 
 
 def cli_main():
@@ -213,6 +215,11 @@ def cli_main():
             "devices": 1,
             "gradient_clip_val": 1.0,
             "gradient_clip_algorithm": "norm",
+            # TODO: Fix this hack (on LUMI configurating logger through YAML fails)
+            "logger": {
+                "class_path": "lightning.pytorch.loggers.wandb.WandbLogger",
+                "init_args": {"resume": "allow", "project": "saganet", "name": "base"},
+            },
         },
     )
 
