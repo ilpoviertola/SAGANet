@@ -58,8 +58,9 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-if [ -z "$yaml_file" ]; then
-	echo "Usage: $0 -c <yaml_file> [--ckpt_path <ckpt_path> --compile_disabled]"
+# check that data_cfg, trainer_cfg, and model_cfg are provided
+if [ -z "$data_cfg" ] || [ -z "$trainer_cfg" ] || [ -z "$model_cfg" ]; then
+	echo "Usage: $0 --data <data_cfg> --trainer <trainer_cfg> --model <model_cfg> [--ckpt_path <ckpt_path> --compile_disabled]"
 	exit 1
 fi
 
