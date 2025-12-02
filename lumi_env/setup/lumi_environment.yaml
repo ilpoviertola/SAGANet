@@ -37,3 +37,4 @@ dependencies:
       - python-dotenv
       - loralib
       - jsonargparse[signatures]>=4.27.7
+      - gitignore_parser
