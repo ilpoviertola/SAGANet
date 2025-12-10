@@ -56,19 +56,19 @@ srun cotainr build $INSTALL_DIR/$IMAGE_NAME \
 # Stuff beyond here is optional but useful
 
 # Load modules needed for running Singularity containers
-module use  /appl/local/containers/ai-modules
-module load singularity-AI-bindings
+# module use  /appl/local/containers/ai-modules
+# module load singularity-AI-bindings
 
 # Create a virtual environment to install stuff that cannot be installed via conda
 # such as an editable install of the package being developed
 # or packages you want to install with the --no-deps flag
-singularity exec $INSTALL_DIR/$IMAGE_NAME bash -c "
-  python -m venv $INSTALL_DIR/myenv --system-site-packages &&
-  source $INSTALL_DIR/myenv/bin/activate &&
-  pip install git+https://github.com/hkchengrex/av-benchmark.git &&
-  deactivate
-"
+# singularity exec $INSTALL_DIR/$IMAGE_NAME bash -c "
+#   python -m venv $INSTALL_DIR/myenv --system-site-packages &&
+#   source $INSTALL_DIR/myenv/bin/activate &&
+#   pip install git+https://github.com/hkchengrex/av-benchmark.git &&
+#   deactivate
+# "
 
 # Create a SquashFS image of the virtual environment
-mksquashfs $INSTALL_DIR/myenv $INSTALL_DIR/myenv.sqsh
-rm -rf $INSTALL_DIR/myenv
+# mksquashfs $INSTALL_DIR/myenv $INSTALL_DIR/myenv.sqsh
+# rm -rf $INSTALL_DIR/myenv

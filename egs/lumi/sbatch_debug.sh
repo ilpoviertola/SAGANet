@@ -106,8 +106,8 @@ echo "Using ${nodes:-1} nodes"
 
 # The number of GPUs and nodes are auto-detected from the SLURM environment variables.
 cmd="srun singularity exec \
-	-B $ENV_DIR/myenv.sqsh:/user-software:image-src=/ $ENV_DIR/$IMAGE_NAME \
-	python main.py fit \
+	$ENV_DIR/$IMAGE_NAME bash -c \
+	'python3 main.py fit \
 	--data $data_cfg \
 	--model $model_cfg \
 	--trainer $trainer_cfg \
@@ -115,12 +115,13 @@ cmd="srun singularity exec \
 	--trainer.num_nodes ${nodes:-1} \
 	--trainer.devices $devices \
 	$compile_disabled \
-	${other_args[@]}
-"
+	${other_args[@]}"
 
 if [ -n "$ckpt_path" ]; then
 	cmd+=" --model.ckpt_path $ckpt_path"
 fi
+
+cmd+="'"
 
 # Read and export secret WANDB API key as environment variable
 if [ -f .wandb_api_key ]; then
