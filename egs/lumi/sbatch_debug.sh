@@ -86,7 +86,7 @@ module purge
 module load LUMI
 module use  /appl/local/containers/ai-modules
 module load singularity-AI-bindings
-module load git 
+module load git
 
 source ~/.bashrc
 export SINGULARITYENV_PREPEND_PATH=/user-software/bin # gives access to packages inside the container
