@@ -86,7 +86,7 @@ module purge
 module load LUMI
 module use  /appl/local/containers/ai-modules
 module load singularity-AI-bindings
-module load git
+module load git 
 
 source ~/.bashrc
 export SINGULARITYENV_PREPEND_PATH=/user-software/bin # gives access to packages inside the container
@@ -99,15 +99,13 @@ export NCCL_NET_GDR_LEVEL=PHB
 # We use the Singularity container from 'create_environment.sh'
 # with the --bind option to mount the virtual environment in $ENV_DIR/myenv.sqsh
 # into the container at /user-software.
-#
 
 echo "Using $devices GPUs"
 echo "Using ${nodes:-1} nodes"
 
 # The number of GPUs and nodes are auto-detected from the SLURM environment variables.
 cmd="srun singularity exec \
-	$ENV_DIR/$IMAGE_NAME bash -c \
-	'python3 main.py fit \
+	$ENV_DIR/$IMAGE_NAME python3 main.py fit \
 	--data $data_cfg \
 	--model $model_cfg \
 	--trainer $trainer_cfg \
@@ -120,8 +118,6 @@ cmd="srun singularity exec \
 if [ -n "$ckpt_path" ]; then
 	cmd+=" --model.ckpt_path $ckpt_path"
 fi
-
-cmd+="'"
 
 # Read and export secret WANDB API key as environment variable
 if [ -f .wandb_api_key ]; then
