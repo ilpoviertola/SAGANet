@@ -3,7 +3,7 @@ from typing import Any, Literal, Optional, Union, Callable, Tuple
 
 import lightning
 from lightning.fabric.utilities.rank_zero import rank_zero_only
-from lightning_utilities.core.rank_zero import rank_zero_warn
+from lightning_utilities.core.rank_zero import rank_zero_warn, rank_zero_info
 from av_bench.evaluate import evaluate
 from av_bench.extract import extract
 import loralib as lora
@@ -91,6 +91,23 @@ class LightningModule(lightning.LightningModule):
 
         self.gt_cache = gt_cache if gt_cache is not None else ""
         self.seq_cfg = CONFIG_44K_SA
+
+        if self.train_synchformer:
+            rank_zero_info("Setting Synchformer trainable.")
+            self.feature_utils.requires_grad_(True)
+        else:
+            rank_zero_info("Setting Synchformer untrainable.")
+            self.feature_utils.requires_grad_(False)
+
+        if not self.train_network and not self.use_lora:
+            rank_zero_info("Setting network untrainable.")
+            self.network.requires_grad_(False)
+        elif self.use_lora:
+            rank_zero_info("Setting only LoRA trainable.")
+            lora.mark_only_lora_as_trainable(self.network, "lora_only")
+        else:
+            rank_zero_info("Setting network trainable.")
+            self.network.requires_grad_(True)
 
     def on_train_start(self) -> None:
         self._set_normalization_stats()
@@ -251,7 +268,7 @@ class LightningModule(lightning.LightningModule):
     def _save_audios(
         self, audio: torch.Tensor, video_ids: list[str], names: list[str]
     ) -> str:
-        assert audio.dim() == 3, "Audio tensor must be 3D"
+        assert audio.dim() == 3, "Audio tensor must be 3D (B, C, N)"
         assert (
             audio.size(0) == len(video_ids) == len(names)
         ), "Batch size must match video_ids and names length"
@@ -260,18 +277,6 @@ class LightningModule(lightning.LightningModule):
 
     def configure_optimizers(self) -> Any:
         parameter_groups = []
-
-        if self.train_synchformer:
-            self.feature_utils.requires_grad_(True)
-        else:
-            self.feature_utils.requires_grad_(False)
-
-        if not self.train_network and not self.use_lora:
-            self.network.requires_grad_(False)
-        elif self.use_lora:
-            lora.mark_only_lora_as_trainable(self.network, "lora_only")
-        else:
-            self.network.requires_grad_(True)
 
         if self.train_network or self.use_lora:
             parameter_groups.append(
@@ -437,17 +442,15 @@ class LightningModule(lightning.LightningModule):
         return self._save_audios(audio, batch["id"], batch["name"])
 
     @rank_zero_only
-    def eval_step(self, batch: Any, batch_idx: int):
+    def eval_step(self, audio_dir: Path):
         if not self.gt_cache:
             rank_zero_warn("GT cache not provided, skipping evaluation.")
             return
 
-        _audio_dir = self.inference_pass(batch)
-        audio_dir = Path(_audio_dir)
         extract(
             audio_path=audio_dir,
             output_path=audio_dir / "cache",
-            device="cuda",
+            device=self.device,  # type: ignore
             batch_size=32,
             audio_length=5,
         )
@@ -464,13 +467,21 @@ class LightningModule(lightning.LightningModule):
     def validation_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
         x1, loss, mean_loss, t = self._common_step(batch, self.val_fn)
         if (self.current_epoch + 1) % self.evaluation_interval == 0:
-            self.eval_step(batch, batch_idx)
+            audio_dir = self.inference_pass(batch)
+            # self.eval_step(audio_dir=Path(audio_dir))
         return mean_loss
 
     def test_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
-        raise NotImplementedError("Test step is not implemented yet")
+        raise NotImplementedError("Test step is not implemented yet.")
+        _audio_dir = self.inference_pass(batch)
+        audio_dir = Path(_audio_dir)
+
+    def on_validation_epoch_end(self) -> None:
+        pass
+        # if (self.current_epoch + 1) % self.evaluation_interval == 0:
 
     def train(self, mode: bool = True):
-        if self.train_synchformer and mode:
+        # TODO: Should we set train mode for all feature extractors?
+        if self.train_synchformer:
             self.feature_utils.synchformer.train(mode)  # type: ignore
         self.network.train(mode)
