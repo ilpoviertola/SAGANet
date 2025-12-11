@@ -76,24 +76,20 @@ if [ "$(basename $PKG_DIR)" != "SAGANet" ]; then
 fi
 
 # Path to the environment. Same as INSTALL_DIR in create_environment.sh
-# ENV_DIR="$PKG_DIR/lumi_env/image"
+ENV_DIR="$PKG_DIR/lumi_env/image"
 
 # Name of the image to to use
-# IMAGE_NAME=saganet.sif
-
-# Activate env
-echo "Acctivating $PKG_DIR/test_env/bin"
-export PATH="$PKG_DIR/test_env/bin:$PATH"
+IMAGE_NAME=saganet.sif
 
 # Load the required modules
-# module purge
-# module load LUMI
-# module use  /appl/local/containers/ai-modules
-# module load singularity-AI-bindings
+module purge
+module load LUMI
+module use  /appl/local/containers/ai-modules
+module load singularity-AI-bindings
 module load git
 
 source ~/.bashrc
-# export SINGULARITYENV_PREPEND_PATH=/user-software/bin # gives access to packages inside the container
+export SINGULARITYENV_PREPEND_PATH=/user-software/bin # gives access to packages inside the container
 
 # Tell RCCL to use only Slingshot interfaces and GPU RDMA
 export NCCL_SOCKET_IFNAME=hsn0,hsn1,hsn2,hsn3
@@ -108,7 +104,8 @@ echo "Using $devices GPUs"
 echo "Using ${nodes:-1} nodes"
 
 # The number of GPUs and nodes are auto-detected from the SLURM environment variables.
-cmd="srun python3 main.py fit \
+cmd="srun singularity exec $ENV_DIR/$IMAGE_NAME \
+	python main.py fit \
 	--data $data_cfg \
 	--model $model_cfg \
 	--trainer $trainer_cfg \
