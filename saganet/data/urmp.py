@@ -2,7 +2,7 @@ import csv
 import logging
 import typing as tp
 from pathlib import Path
-from math import ceil
+from fractions import Fraction
 
 import torch
 from torchvision.transforms import v2
@@ -12,6 +12,7 @@ from tensordict import TensorDict
 import numpy as np
 
 from saganet.utils.dist_utils import local_rank
+from .av_utils import resample_video, read_video_to_frames_and_audio_with_av
 
 log = logging.getLogger()
 
@@ -163,29 +164,33 @@ class URMPDataset(Dataset):
     def _read_video(
         self, path: Path, key: str = "sync_video"
     ) -> dict[str, torch.Tensor]:
-        reader = StreamingMediaDecoder(path)
-        reader.add_basic_video_stream(
-            frames_per_chunk=int(_SYNC_FPS * self.duration_sec),
-            frame_rate=_SYNC_FPS,
-            format="rgb24",
+        video, _, meta = self.load_video_from_file(
+            path, 0, self.duration_sec, to_rgb=True
         )
-        reader.fill_buffer()
-        data_chunk = reader.pop_chunks()
-        sync_chunk = self.sync_transform(data_chunk[0])[: self.sync_samples]
+        assert video.numel() > 0, f"Video {path} is empty"
+        if meta["video_fps"] != _SYNC_FPS:
+            video = resample_video(
+                video,
+                original_fps=meta["video_fps"],
+                target_fps=_SYNC_FPS,
+            )
+        sync_chunk = self.sync_transform(video)[: self.sync_samples]
         return {key: sync_chunk}
 
     def _read_mask_video(
         self, path: Path, key: str = "mask_video"
     ) -> dict[str, torch.Tensor]:
-        reader = StreamingMediaDecoder(path)
-        reader.add_basic_video_stream(
-            frames_per_chunk=int(_SYNC_FPS * self.duration_sec),
-            frame_rate=_SYNC_FPS,
-            format="gray",
+        video, _, meta = self.load_video_from_file(
+            path, 0, self.duration_sec, to_rgb=False
         )
-        reader.fill_buffer()
-        data_chunk = reader.pop_chunks()
-        mask_chunk = self.mask_transform(data_chunk[0])[: self.sync_samples]
+        assert video.numel() > 0, f"Mask video {path} is empty"
+        if meta["video_fps"] != _SYNC_FPS:
+            video = resample_video(
+                video,
+                original_fps=meta["video_fps"],
+                target_fps=_SYNC_FPS,
+            )
+        mask_chunk = self.mask_transform(video)[: self.sync_samples]
         return {key: mask_chunk}
 
     def _get_data_chunks(
@@ -287,3 +292,51 @@ class URMPDataset(Dataset):
             }
         )
         return data_chunk
+
+    @staticmethod
+    def load_video_from_file(
+        file: Path,
+        v_start_s: tp.Union[float, Fraction] = 0,
+        v_end_s: tp.Optional[tp.Union[float, Fraction]] = None,
+        a_start_s: tp.Union[float, Fraction] = 0,
+        a_end_s: tp.Optional[tp.Union[float, Fraction]] = None,
+        to_rgb: bool = True,
+    ) -> tp.Tuple[torch.Tensor, torch.Tensor, tp.Dict[str, tp.Any]]:
+        """Load a video from a file.
+
+        Args:
+            file (Path): Filepath to the video.
+            v_start_s (tp.Union[float, Fraction], optional): Start point (in seconds) for the RGB stream. Defaults to 0.
+            v_end_s (tp.Optional[tp.Union[float, Fraction]], optional): End point (in seconds) for the RGB stream. Defaults to None.
+            a_start_s (tp.Union[float, Fraction], optional): Start point (in seconds) for the audio stream. Defaults to 0.
+            a_end_s (tp.Optional[tp.Union[float, Fraction]], optional): End point (in seconds) for the audio stream. Defaults to None.
+            to_rgb (bool, optional): Whether to convert video frames to RGB. Defaults to True.
+
+        Raises:
+            ValueError: If video start time is greater than video end time.
+            ValueError: If audio start time is greater than audio end time.
+
+        Returns:
+            tp.Tuple[torch.Tensor, torch.Tensor, tp.Dict[str, tp.Any]]: RGB (THWC), audio and metadata.
+        """
+        if v_start_s is not None and a_start_s is None:
+            a_start_s = v_start_s
+        if a_start_s is not None and v_start_s is None:
+            v_start_s = a_start_s
+        if v_end_s is not None and a_end_s is None:
+            a_end_s = v_end_s
+        if a_end_s is not None and v_end_s is None:
+            v_end_s = a_end_s
+
+        if v_start_s and v_end_s and v_start_s >= v_end_s:
+            raise ValueError(
+                f"Invalid video start and end time: {v_start_s} >= {v_end_s}"
+            )
+        if a_start_s and a_end_s and a_start_s >= a_end_s:
+            raise ValueError(
+                f"Invalid audio start and end time: {a_start_s} >= {a_end_s}"
+            )
+
+        return read_video_to_frames_and_audio_with_av(
+            file, v_start_s, v_end_s, a_start_s, a_end_s, to_rgb
+        )
