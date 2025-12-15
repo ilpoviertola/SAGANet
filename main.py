@@ -11,6 +11,9 @@ import warnings
 import logging
 from pathlib import Path
 from types import MethodType
+import os
+import logging.config
+import yaml
 
 import jsonargparse._typehints as _t
 from gitignore_parser import parse_gitignore
@@ -27,6 +30,22 @@ from lightning.pytorch.loops.fetchers import _DataFetcher, _DataLoaderIterDataFe
 from saganet.lightning_module import LightningModule
 from saganet.data.lightning_data_module import LightningDataModule
 from saganet.utils.ema import EMAWeightAveraging
+
+
+def setup_logging(
+    default_path="configs/logging.yaml", default_level=logging.INFO, env_key="LOG_CFG"
+):
+    """Setup logging configuration"""
+    path = default_path
+    value = os.getenv(env_key, None)
+    if value:
+        path = value
+    if os.path.exists(path):
+        with open(path, "rt") as f:
+            config = yaml.safe_load(f.read())
+        logging.config.dictConfig(config)
+    else:
+        logging.basicConfig(level=default_level)
 
 
 _orig_single = _t.raise_unexpected_value
@@ -87,7 +106,7 @@ def _should_check_val_fx(self: _TrainingEpochLoop, data_fetcher: _DataFetcher) -
 
 class LightningCLI(cli.LightningCLI):
     def __init__(self, *args, **kwargs):
-        logging.getLogger().setLevel(logging.INFO)
+        setup_logging()
         torch.set_float32_matmul_precision("medium")
         torch._dynamo.config.capture_scalar_outputs = True
         torch._dynamo.config.suppress_errors = True

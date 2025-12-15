@@ -7,19 +7,16 @@ from fractions import Fraction
 import torch
 from torchvision.transforms import v2
 from torch.utils.data.dataset import Dataset
-from torio.io import StreamingMediaDecoder
 from tensordict import TensorDict
 import numpy as np
 
 from saganet.utils.dist_utils import local_rank
 from .av_utils import resample_video, read_video_to_frames_and_audio_with_av
 
-log = logging.getLogger()
-
-
 _SYNC_SIZE = 224
 _SYNC_FPS = 25.0
 MAX_LOAD_ATTEMPTS = 10
+logger = logging.getLogger(__name__)
 
 
 class URMPDataset(Dataset):
@@ -276,7 +273,7 @@ class URMPDataset(Dataset):
             try:
                 data_chunk, sample_loaded = self.sample(idx)
             except Exception as e:
-                log.error(f"Error loading sample {self._get_file_id(idx)}: {e}")
+                logger.error(f"Error loading sample {self._get_file_id(idx)}: {e}")
                 sample_loaded = False
                 idx = np.random.randint(0, len(self))
                 load_attempts += 1

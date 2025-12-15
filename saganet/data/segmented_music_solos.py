@@ -2,13 +2,14 @@ import csv
 import typing as tp
 from pathlib import Path
 from fractions import Fraction
+import logging
 
 import torch
 from torchvision.transforms import v2
 from torch.utils.data.dataset import Dataset
 from tensordict import TensorDict
 import numpy as np
-from lightning_fabric.utilities import rank_zero_info, rank_zero_warn
+from lightning_fabric.utilities import rank_zero_info
 
 from saganet.utils.dist_utils import local_rank
 from .av_utils import resample_video, read_video_to_frames_and_audio_with_av
@@ -16,6 +17,7 @@ from .av_utils import resample_video, read_video_to_frames_and_audio_with_av
 _SYNC_SIZE = 224
 _SYNC_FPS = 25.0
 MAX_LOAD_ATTEMPTS = 10
+logger = logging.getLogger(__name__)
 
 
 class SegmentedMusicSolos(Dataset):
@@ -245,7 +247,7 @@ class SegmentedMusicSolos(Dataset):
             try:
                 data_chunk, sample_loaded = self.sample(idx)
             except Exception as e:
-                rank_zero_warn(f"Error loading sample {self._get_file_id(idx)}: {e}")
+                logger.error(f"Error loading sample {self._get_file_id(idx)}: {e}")
                 sample_loaded = False
                 idx = np.random.randint(0, len(self))
                 load_attempts += 1
