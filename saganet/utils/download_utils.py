@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from training.load_sms import SAGANET_PUB_URL
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 links = [
     {

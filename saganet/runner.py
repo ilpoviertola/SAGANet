@@ -32,7 +32,7 @@ from saganet.utils.time_estimator import PartialTimeEstimator, TimeEstimator
 from saganet.utils.video_joiner import VideoJoiner
 
 
-sys_logger = logging.getLogger()
+sys_logger = logging.getLogger(__name__)
 
 
 class DummyWrapper(torch.nn.Module):

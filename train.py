@@ -25,7 +25,7 @@ from saganet.utils.synthesize_ema import synthesize_ema
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 def distributed_setup():

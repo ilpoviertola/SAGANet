@@ -14,7 +14,7 @@ from saganet.ext.autoencoder.vae_modules import (
 )
 from saganet.model.utils.distributions import DiagonalGaussianDistribution
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 DATA_MEAN_80D = [
     -1.6058,

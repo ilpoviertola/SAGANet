@@ -8,7 +8,7 @@ import pandas as pd
 import torch
 from torch.utils.data.dataset import Dataset
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 class AudioCapsData(Dataset):

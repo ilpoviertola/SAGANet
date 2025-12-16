@@ -18,6 +18,7 @@ init_args:
       latent_mean: null  # loaded from data stats
       latent_std: null  # loaded from data stats
       use_lora: true
+      weights_path: ./weights/mmaudio_small_44k.pth
   train_network: false
   train_synchformer: true
   use_lora: true
@@ -62,6 +63,6 @@ init_args:
   lr_schedule: step
   lr_schedule_steps: [60000, 65000]
   lr_schedule_gamma: 0.1
-  evaluation_interval_epochs: 15_000
+  evaluation_interval_epochs: 3
 # Eval params
   gt_cache: ./data/sms/val_cache

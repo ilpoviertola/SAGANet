@@ -193,7 +193,7 @@ class LightningCLI(cli.LightningCLI):
             model.feature_utils = torch.compile(model.feature_utils)
 
         if self.config[self.config["subcommand"]]["use_ema"]:
-            self.trainer.callbacks.append(EMAWeightAveraging())  # type: ignore
+            self.trainer.callbacks.append(EMAWeightAveraging(device=self.model.device))  # type: ignore
 
         self.trainer.fit(model, **kwargs)
 

@@ -44,7 +44,7 @@ synchformer_ckpt = "./ext_weights/synchformer_state_dict.pth"
 BATCH_SIZE = 3
 NUM_WORKERS = 8
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
 # uncomment the train/test/val sets to extract latents for them

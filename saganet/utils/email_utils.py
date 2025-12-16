@@ -11,7 +11,7 @@ from saganet.utils.timezone import my_timezone
 _source = "USE YOURS"
 _target = "USE YOURS"
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 _fmt = "%Y-%m-%d %H:%M:%S %Z%z"
 

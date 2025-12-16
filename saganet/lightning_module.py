@@ -1,15 +1,17 @@
+import logging
 from pathlib import Path
 from typing import Any, Literal, Optional, Union, Callable, Tuple
 
 import lightning
 from lightning.fabric.utilities.rank_zero import rank_zero_only
-from lightning_utilities.core.rank_zero import rank_zero_warn, rank_zero_info
+from lightning_utilities.core.rank_zero import rank_zero_info
 from av_bench.evaluate import evaluate
 from av_bench.extract import extract
 import loralib as lora
 import torch
 import torch.nn as nn
 from torch.optim.lr_scheduler import LambdaLR, SequentialLR, MultiStepLR
+from torchaudio import save as torchaudio_save
 
 from saganet.model.networks import MMAudio
 from saganet.utils.video_joiner import VideoJoiner
@@ -21,6 +23,7 @@ from saganet.model.utils.parameter_groups import get_parameter_groups
 
 
 LR_SCHEDULES = Literal["constant", "poly", "step"]
+py_logger = logging.getLogger(__name__)
 
 
 class LightningModule(lightning.LightningModule):
@@ -56,6 +59,9 @@ class LightningModule(lightning.LightningModule):
         evaluation_interval_epochs: int = 3,
         # Eval params
         gt_cache: Union[str, None] = None,
+        # Checkpoint and logging
+        ckpt_path: Optional[str] = None,
+        samples_to_log: Optional[list[str]] = None,
     ) -> None:
         super().__init__()
         assert not (
@@ -68,7 +74,7 @@ class LightningModule(lightning.LightningModule):
 
         self.fm = flow_matching
         self.rng: Optional[torch.Generator] = None
-        self.feature_utils = feature_utils.eval()
+        self.feature_utils = feature_utils
 
         self.log_normal_sampling_mean = log_normal_sampling_mean
         self.log_normal_sampling_scale = log_normal_sampling_scale
@@ -89,6 +95,7 @@ class LightningModule(lightning.LightningModule):
         self.lr_schedule_gamma = lr_schedule_gamma
         self.evaluation_interval = evaluation_interval_epochs
 
+        self.eval_audio_dir: Optional[str] = None
         self.gt_cache = gt_cache if gt_cache is not None else ""
         self.seq_cfg = CONFIG_44K_SA
 
@@ -109,6 +116,51 @@ class LightningModule(lightning.LightningModule):
             rank_zero_info("Setting network trainable.")
             self.network.requires_grad_(True)
 
+        if ckpt_path:
+            ckpt = torch.load(ckpt_path, map_location=self.device, weights_only=True)
+            incompatible_keys = self.load_state_dict(ckpt, strict=False)
+            if incompatible_keys.missing_keys:
+                raise ValueError(f"Missing keys: {incompatible_keys.missing_keys}")
+            if incompatible_keys.unexpected_keys:
+                raise ValueError(
+                    f"Unexpected keys: {incompatible_keys.unexpected_keys}"
+                )
+
+        self.samples_to_log = samples_to_log if samples_to_log is not None else []
+        self.log = torch.compiler.disable(self.log)  # type: ignore
+
+    def _should_run_eval(self, stage: str) -> bool:
+        if stage == "val":
+            return (
+                self.current_epoch + 1
+            ) % self.evaluation_interval == 0 and not self.trainer.sanity_checking
+        elif stage == "test":
+            return True
+        else:
+            return False
+
+    @rank_zero_only
+    def _log_audio(self, stage: str):
+        if (
+            hasattr(self.logger, "log_audio")
+            and callable(self.logger.log_audio)  # type: ignore
+            and self.samples_to_log
+            and self.eval_audio_dir is not None
+        ):
+            audio_fns_to_log = [
+                (Path(self.eval_audio_dir) / fn).as_posix()
+                for fn in self.samples_to_log
+                if (Path(self.eval_audio_dir) / fn).exists()
+            ]
+            if audio_fns_to_log:
+                self.logger.log_audio(  # type: ignore
+                    key="audio/val",
+                    audios=audio_fns_to_log,
+                    step=self.global_step,
+                )
+            else:
+                py_logger.warning("No audio files found to log for validation.")
+
     def on_train_start(self) -> None:
         self._set_normalization_stats()
         if self.rng is None:
@@ -119,10 +171,20 @@ class LightningModule(lightning.LightningModule):
         if self.rng is None:
             self.rng = torch.Generator(self.device)
 
+    def on_test_end(self) -> None:
+        if self._should_run_eval("test") and self.eval_audio_dir is not None:
+            self.eval_step(audio_dir=Path(self.eval_audio_dir), stage="test")
+            self._log_audio(stage="test")
+
     def on_validation_start(self) -> None:
         self._set_normalization_stats()
         if self.rng is None:
             self.rng = torch.Generator(self.device)
+
+    def on_validation_epoch_end(self) -> None:
+        if self._should_run_eval("val") and self.eval_audio_dir is not None:
+            self.eval_step(audio_dir=Path(self.eval_audio_dir), stage="val")
+            self._log_audio(stage="val")
 
     def on_predict_start(self) -> None:
         self._set_normalization_stats()
@@ -266,14 +328,39 @@ class LightningModule(lightning.LightningModule):
         }
 
     def _save_audios(
-        self, audio: torch.Tensor, video_ids: list[str], names: list[str]
-    ) -> str:
+        self,
+        audio: torch.Tensor,
+        video_ids: list[str],
+        names: list[str],
+        subdir: Optional[str] = None,
+    ) -> Optional[str]:
+        def prune_video_id(vid: str) -> str:
+            return vid.split("/")[-1]
+
         assert audio.dim() == 3, "Audio tensor must be 3D (B, C, N)"
         assert (
             audio.size(0) == len(video_ids) == len(names)
         ), "Batch size must match video_ids and names length"
 
-        return ""
+        if type(self.trainer.logger.experiment.dir) is not str:  # type: ignore
+            return None
+        save_dir = Path(self.trainer.logger.experiment.dir)  # type: ignore
+        if subdir is not None:
+            save_dir = save_dir / subdir  # type: ignore
+        save_dir = save_dir / f"{self.global_step}"
+        save_dir.mkdir(exist_ok=True, parents=True)
+        py_logger.debug(f"Saving audios to {save_dir}")
+
+        for audio, video_id, name in zip(audio, video_ids, names):
+            video_id = prune_video_id(video_id)
+            torchaudio_save(
+                save_dir / f"{video_id}.flac",
+                audio.cpu().float(),
+                sample_rate=self.video_joiner.sample_rate,
+                channels_first=True,
+            )
+
+        return str(save_dir)
 
     def configure_optimizers(self) -> Any:
         parameter_groups = []
@@ -414,7 +501,7 @@ class LightningModule(lightning.LightningModule):
         return x1, loss, mean_loss, t
 
     @torch.inference_mode()
-    def inference_pass(self, batch: Any) -> str:
+    def inference_pass(self, batch: Any, save_sub_dir: str) -> Optional[str]:
         input_feats = self._get_input_feats(batch)
         clip_f = input_feats["clip_f"]
         sync_f = input_feats["sync_f"]
@@ -439,49 +526,60 @@ class LightningModule(lightning.LightningModule):
         mel = self.feature_utils.decode(x1_hat)  # type: ignore
         audio = self.feature_utils.vocode(mel).cpu()  # type: ignore
 
-        return self._save_audios(audio, batch["id"], batch["name"])
+        return self._save_audios(audio, batch["id"], batch["name"], save_sub_dir)
 
     @rank_zero_only
-    def eval_step(self, audio_dir: Path):
+    def eval_step(self, audio_dir: Path, stage: str):
         if not self.gt_cache:
-            rank_zero_warn("GT cache not provided, skipping evaluation.")
+            py_logger.warning("GT cache not provided, skipping evaluation.")
             return
 
-        extract(
-            audio_path=audio_dir,
-            output_path=audio_dir / "cache",
-            device=self.device,  # type: ignore
-            batch_size=32,
-            audio_length=5,
-        )
-        output_metrics = evaluate(
-            gt_audio_cache=Path(self.gt_cache),
-            pred_audio_cache=audio_dir / "cache",
-        )
-        self.log_dict(output_metrics, prog_bar=False, on_epoch=True, on_step=False)
+        try:
+            extract(
+                audio_path=audio_dir,
+                output_path=audio_dir / "cache",
+                device=self.device,  # type: ignore
+                batch_size=32,
+                audio_length=5,
+            )
+            output_metrics = evaluate(
+                gt_audio_cache=Path(self.gt_cache),
+                pred_audio_cache=audio_dir / "cache",
+            )
+            output_metrics = {f"eval/{stage}/{k}": v for k, v in output_metrics.items()}
+            self.log_dict(output_metrics, prog_bar=False, on_epoch=True, on_step=False)
+        except Exception as e:
+            py_logger.error(f"Error during evaluation: {e}")
 
     def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
         x1, loss, mean_loss, t = self._common_step(batch, self.train_fn)
+        self.log(
+            "losses/train_mean_loss",
+            mean_loss,
+            prog_bar=True,
+            on_epoch=True,
+            on_step=True,
+            sync_dist=True,
+        )
         return mean_loss
 
     def validation_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
         x1, loss, mean_loss, t = self._common_step(batch, self.val_fn)
-        if (self.current_epoch + 1) % self.evaluation_interval == 0:
-            audio_dir = self.inference_pass(batch)
-            # self.eval_step(audio_dir=Path(audio_dir))
+        if self._should_run_eval("val"):
+            audio_dir = self.inference_pass(batch, "val_audio")
+            if audio_dir is not None:
+                self.eval_audio_dir = audio_dir
+        self.log(
+            "losses/val_mean_loss",
+            mean_loss,
+            prog_bar=False,
+            on_epoch=True,
+            on_step=False,
+            sync_dist=True,
+        )
         return mean_loss
 
-    def test_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
-        raise NotImplementedError("Test step is not implemented yet.")
-        _audio_dir = self.inference_pass(batch)
-        audio_dir = Path(_audio_dir)
-
-    def on_validation_epoch_end(self) -> None:
-        pass
-        # if (self.current_epoch + 1) % self.evaluation_interval == 0:
-
-    def train(self, mode: bool = True):
-        # TODO: Should we set train mode for all feature extractors?
-        if self.train_synchformer:
-            self.feature_utils.synchformer.train(mode)  # type: ignore
-        self.network.train(mode)
+    def test_step(self, batch: Any, batch_idx: int):  # -> torch.Tensor:
+        audio_dir = self.inference_pass(batch, "test_audio")
+        if audio_dir is not None:
+            self.eval_audio_dir = audio_dir

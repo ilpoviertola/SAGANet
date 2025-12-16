@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass
 from typing import Optional
+from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -11,7 +12,7 @@ from saganet.model.embeddings import TimestepEmbedder
 from saganet.model.low_level import MLP, ChannelLastConv1d, ConvMLP
 from saganet.model.transformer_layers import FinalBlock, JointBlock, MMDitSingleBlock
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -47,6 +48,7 @@ class MMAudio(nn.Module):
         empty_string_feat: Optional[torch.Tensor] = None,
         v2: bool = False,
         use_lora: bool = False,
+        weights_path: Optional[str] = None,
     ) -> None:
         super().__init__()
 
@@ -176,6 +178,13 @@ class MMAudio(nn.Module):
 
         self.initialize_weights()
         self.initialize_rotations()
+
+        if weights_path is not None:
+            if not Path(weights_path).is_file():
+                raise ValueError(f"weights_path {weights_path} is not a valid file")
+            log.info(f"Loading weights from {weights_path}")
+            src_dict = torch.load(weights_path, map_location="cpu", weights_only=True)
+            self.load_weights(src_dict)
 
     def initialize_rotations(self):
         base_freq = 1.0

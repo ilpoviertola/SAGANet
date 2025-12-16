@@ -26,7 +26,7 @@ from saganet.model.utils.features_utils import FeaturesUtils
 from saganet.utils.download_utils import download_model_if_needed
 from training.load_sms import SAGANET_PUB_URL
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -179,7 +179,7 @@ def setup_eval_logging(log_level: int = logging.INFO):
     stream = logging.StreamHandler()
     stream.setLevel(log_level)
     stream.setFormatter(formatter)
-    log = logging.getLogger()
+    log = logging.getLogger(__name__)
     log.setLevel(log_level)
     log.addHandler(stream)
 

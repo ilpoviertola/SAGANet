@@ -42,7 +42,7 @@ NUM_WORKERS = 8
 MIN_CROP_W = 56
 MIN_CROP_H = 56
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
 # uncomment the train/test/val sets to extract latents for them

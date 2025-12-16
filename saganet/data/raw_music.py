@@ -16,7 +16,7 @@ from tensordict import TensorDict
 
 from saganet.utils.dist_utils import local_rank
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 _CLIP_SIZE = 384
 _CLIP_FPS = 8.0

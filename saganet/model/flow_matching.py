@@ -4,7 +4,7 @@ from typing import Callable, Optional
 import torch
 from torchdiffeq import odeint
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 # Partially from https://github.com/gle-bellier/flow-matching

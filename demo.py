@@ -23,7 +23,7 @@ from training.extract_focal_prompt import run_focal_crop
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 @torch.inference_mode()

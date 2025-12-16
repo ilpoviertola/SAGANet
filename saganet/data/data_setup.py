@@ -16,7 +16,7 @@ from saganet.data.urmp import URMPDataset
 from saganet.data.eval.urmp import URMPDataset as URMPDatasetEval
 from saganet.utils.dist_utils import local_rank
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 # Re-seed randomness every time we start a worker

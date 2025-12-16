@@ -19,7 +19,7 @@ scratch_path = Path(
 )
 shm_path = Path("/dev/shm")
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 def reseed(seed):
