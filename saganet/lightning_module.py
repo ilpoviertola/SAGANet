@@ -154,12 +154,12 @@ class LightningModule(lightning.LightningModule):
             ]
             if audio_fns_to_log:
                 self.logger.log_audio(  # type: ignore
-                    key="audio/val",
+                    key=f"audio/{stage}",
                     audios=audio_fns_to_log,
                     step=self.global_step,
                 )
             else:
-                py_logger.warning("No audio files found to log for validation.")
+                py_logger.warning(f"No audio files found to log for {stage}.")
 
     def on_train_start(self) -> None:
         self._set_normalization_stats()

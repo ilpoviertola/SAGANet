@@ -23,7 +23,7 @@ torch.backends.cudnn.allow_tf32 = True
 
 local_rank = int(os.environ["LOCAL_RANK"])
 world_size = int(os.environ["WORLD_SIZE"])
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 def load_weights_in_memory(

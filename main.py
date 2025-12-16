@@ -222,18 +222,19 @@ def cli_main():
             "callbacks": [
                 ModelSummary(max_depth=3),
                 LearningRateMonitor(logging_interval="epoch"),
-                # TODO: ModelCheckpoint(
-                #     monitor="metrics/val_f_measure",
-                #     mode="max",
-                #     save_top_k=1,
-                #     filename="best-f-epoch={epoch}-val_f_measure={metrics/val_f_measure:.2f}-val_miou={metrics/val_iou_all:.2f}",
-                #     auto_insert_metric_name=False,
-                #     save_last=True,
-                # ),
+                ModelCheckpoint(
+                    monitor="losses/val_mean_loss",
+                    mode="max",
+                    save_top_k=3,
+                    filename="epoch={epoch}-val_mean_loss={losses/val_mean_loss:.2f}",
+                    auto_insert_metric_name=False,
+                    save_last=True,
+                ),
             ],
             "devices": 1,
             "gradient_clip_val": 1.0,
             "gradient_clip_algorithm": "norm",
+            "default_root_dir": "./runs",
         },
     )
 

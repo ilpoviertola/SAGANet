@@ -66,3 +66,7 @@ init_args:
   evaluation_interval_epochs: 3
 # Eval params
   gt_cache: ./data/sms/val_cache
+# Logging
+  samples_to_log:
+    - 8p8zjfAiuJQ_330000_335000.flac
+    - yG1DzBXVxw8_17000_22000.flac
